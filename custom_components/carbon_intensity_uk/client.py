@@ -153,12 +153,32 @@ def generate_response(json_response, target="low"):
             }
         )
 
+    mix = {
+        "biomass": 0,
+        "coal": 0,
+        "gas": 0,
+        "hydro": 0,
+        "nuclear": 0,
+        "oil": 0,
+        "other": 0,
+        "pumped storage": 0,
+        "solar": 0,
+        "wind": 0,
+    }
+
+    for entry in data[0]["generationmix"]:
+        mix.update({entry.get("fuel"): entry.get("perc", 0)})
+
     response = {
-        "data": {
+        "context": {"unit": "gCO2/kWh", "postcode": postcode},
+        "now": {
             "current_period_from": hourly_forecast[0]["from"],
             "current_period_to": hourly_forecast[0]["to"],
             "current_period_forecast": hourly_forecast[0]["intensity"],
             "current_period_index": hourly_forecast[0]["index"],
+            "current_period_mix": mix,
+        },
+        "forecast": {
             "optimal_window_from": hours_start[best24h],
             "optimal_window_to": hours_end[best24h + 3],
             "optimal_window_forecast": average_intensity24h[best24h],
@@ -175,9 +195,7 @@ def generate_response(json_response, target="low"):
             "optimal_window_48_index": get_index(average_intensity48h[best48h])
             if two_day_forecast
             else None,
-            "unit": "gCO2/kWh",
-            "postcode": postcode,
             "forecast": hourly_forecast,
-        }
+        },
     }
     return response
