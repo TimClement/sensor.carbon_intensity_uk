@@ -1,4 +1,5 @@
 """Adds config flow for Carbon Intensity."""
+
 import logging
 
 import voluptuous as vol
@@ -7,7 +8,7 @@ from homeassistant.core import callback
 
 _LOGGER = logging.getLogger(__name__)
 
-from .client import Client as CarbonIntentisityApi
+from .client import Client as CarbonIntensityApi
 from .const import CONF_POSTCODE, DOMAIN, PLATFORMS  # pylint: disable=unused-import
 
 
@@ -22,7 +23,8 @@ class CarbonIntensityFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self._errors = {}
 
     async def async_step_user(
-        self, user_input=None  # pylint: disable=bad-continuation
+        self,
+        user_input=None,  # pylint: disable=bad-continuation
     ):
         """Handle a flow initialized by the user."""
         self._errors = {}
@@ -66,7 +68,7 @@ class CarbonIntensityFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def _test_credentials(self, postcode):
         """Return true if credentials is valid."""
         try:
-            client = CarbonIntentisityApi(postcode)
+            client = CarbonIntensityApi(postcode)
             await client.async_get_data()
             _LOGGER.debug("Input successfully")
             return True
