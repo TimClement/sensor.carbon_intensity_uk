@@ -1,5 +1,4 @@
-"""
-Custom integration to integrate UK Carbon Intensity API with Home Assistant.
+"""Custom integration to integrate UK Carbon Intensity API with Home Assistant.
 
 For more details about this integration, please refer to
 https://github.com/jscruz/sensor.carbon_intensity_uk
@@ -33,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         _LOGGER.info(STARTUP_MESSAGE)
 
     postcode = entry.data.get(CONF_POSTCODE)
-    _LOGGER.debug("Postcode setup: %s" % postcode)
+    _LOGGER.debug("Postcode setup: %s", postcode)
 
     coordinator = CarbonIntensityDataUpdateCoordinator(hass, postcode=postcode)
     _LOGGER.debug("Coordinator refresh triggered")
@@ -47,7 +46,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     for platform in PLATFORMS:
         if entry.options.get(platform, True):
-            _LOGGER.debug("Found platform %s" % platform)
+            _LOGGER.debug("Found platform %s", platform)
             coordinator.platforms.append(platform)
             hass.async_add_job(
                 hass.config_entries.async_forward_entry_setup(entry, platform)
@@ -74,13 +73,17 @@ class CarbonIntensityDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Update data via library."""
+        data = {}
         try:
             _LOGGER.debug("Coordinator update data async")
-            data = await self.api.async_get_data()
+            forecast = await self.api.async_get_data()
             _LOGGER.debug("Coordinator update done")
-            return data.get("data", {})
+            data["context"] = forecast["context"]
+            data["now"] = forecast["now"]
+            data["forecast"] = forecast["forecast"]
+            return data
         except Exception as exception:
-            raise UpdateFailed(exception)
+            raise UpdateFailed from exception
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
