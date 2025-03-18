@@ -4,15 +4,15 @@ For more details about this integration, please refer to
 https://github.com/jscruz/sensor.carbon_intensity_uk
 """
 import asyncio
-import logging
 from datetime import timedelta
+import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Config, HomeAssistant
+from homeassistant.core_config import Config, HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .client import Client as CarbonIntentisityApi
+from .client import Client as CarbonIntensityApi
 from .const import CONF_POSTCODE, DOMAIN, PLATFORMS, STARTUP_MESSAGE
 
 SCAN_INTERVAL = timedelta(seconds=600)
@@ -44,14 +44,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
-    for platform in PLATFORMS:
-        if entry.options.get(platform, True):
-            _LOGGER.debug("Found platform %s", platform)
-            coordinator.platforms.append(platform)
-            hass.async_add_job(
-                hass.config_entries.async_forward_entry_setup(entry, platform)
-            )
-
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    
     entry.add_update_listener(async_reload_entry)
     return True
 
@@ -61,7 +55,7 @@ class CarbonIntensityDataUpdateCoordinator(DataUpdateCoordinator):
 
     def __init__(self, hass, postcode):
         """Initialize."""
-        self.api = CarbonIntentisityApi(postcode)
+        self.api = CarbonIntensityApi(postcode)
         self.platforms = []
 
         super().__init__(
